@@ -94,7 +94,7 @@ Style/AccessModifierIndentation:
   IndentationWidth: ~
 
 Style/Alias:
-  EnforcedStyle: prefer_alias
+  EnforcedStyle: prefer_alias_method
   SupportedStyles:
     - prefer_alias
     - prefer_alias_method
@@ -1150,7 +1150,7 @@ Metrics/BlockLength:
 
 Metrics/ParameterLists:
   Max: 5
-  CountKeywordArgs: true
+  CountKeywordArgs: false
 
 Metrics/PerceivedComplexity:
   Max: 7

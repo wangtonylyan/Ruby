@@ -1,15 +1,14 @@
 # require 'test/unit'
-# require_relative '../../../lib/data_structure/tree/tree'
-require_relative 'tree'
-require_relative 'bst'
+require_relative '../lib/data_structure/tree/tree'
 
+module My
 module Test
   class Time
     def self.runtime
       return 0 unless block_given?
       t = ::Time.now
       yield
-      t = ::Time.now - t
+      ::Time.now - t
     end
   end
 
@@ -20,8 +19,10 @@ module Test
     end
   end
 end
+end
 
-class Test::DataStructure::TestTree
+
+class My::Test::DataStructure::TestTree
   def initialize(cls, args, num, check)
     raise "#{cls.class}, #{cls.inspect}" unless cls < ::DataStructure::Tree
     raise "#{num.class}, #{num.inspect}" unless num > 0
@@ -81,10 +82,10 @@ class Test::DataStructure::TestTree
     @cases = create(@num)
     tree = @cls.new(**@args)
     msg = @msg_search.call('p')
-    run(@cases, tree, :insert, ->(p, *_) { p },
-        ->(p, *_) { raise eval(msg) unless tree.search(p[0]).nil? },
-        ->(p, *_) { raise eval(msg) unless tree.search(p[0]).equal?(p[1]) },
-        ->(*_) { tree.check(@cases.size) })
+    run(@cases, tree, :insert, ->(p, *) { p },
+        ->(p, *) { raise eval(msg) unless tree.search(p[0]).nil? },
+        ->(p, *) { raise eval(msg) unless tree.search(p[0]).equal?(p[1]) },
+        ->(*) { tree.check(@cases.size) })
     tree
   end
 
@@ -92,10 +93,10 @@ class Test::DataStructure::TestTree
     raise "#{@cls.instance_methods}" unless @cls.instance_methods.include?(:delete)
     tree = insert
     msg = @msg_search.call('p')
-    run(@cases, tree, :delete, ->(p, *_) { p[0] },
-        ->(p, *_) { raise eval(msg) unless tree.search(p[0]).equal?(p[1]) },
-        ->(p, *_) { raise eval(msg) unless tree.search(p[0]).nil? },
-        ->(*_) { tree.check(0) })
+    run(@cases, tree, :delete, ->(p, *) { p[0] },
+        ->(p, *) { raise eval(msg) unless tree.search(p[0]).equal?(p[1]) },
+        ->(p, *) { raise eval(msg) unless tree.search(p[0]).nil? },
+        ->(*) { tree.check(0) })
     yield if block_given?
   end
 
@@ -108,9 +109,9 @@ class Test::DataStructure::TestTree
       tree = insert
       msg = @msg_search.call('o')
       run(@cases, tree, del, nil,
-          ->(*_) { tree.send(get) },
-          ->(*_, o, _) { raise eval(msg) unless tree.search(o[0]).nil? },
-          ->(*_) { tree.check(0) })
+          ->(*) { tree.send(get) },
+          ->(*, o, _) { raise eval(msg) unless tree.search(o[0]).nil? },
+          ->(*) { tree.check(0) })
       yield if block_given?
     end
   end
