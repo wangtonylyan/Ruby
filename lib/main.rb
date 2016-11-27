@@ -7,21 +7,16 @@ class Main
   attr_accessor :attribute_access # getter + setter
 
   public
-  def attribute_access # getter
-    @attribute_access
-  end
 
-  def attribute_access=(value) # setter
-    @attribute_access = value
-  end
+  attr_reader :attribute_access
 
+  attr_writer :attribute_access
 
   private
 
   def initialize
     @attribute_access = nil
   end
-
 
   def self.class_func
     # this is a class method
@@ -36,7 +31,7 @@ class Main
 end
 
 # 字符串尽量使用单引号
-hash = {a: 1, b: 2} # 使用此格式进行声明
-#hash.each_with_index do |[key, value], index|
+hash = { a: 1, b: 2 } # 使用此格式进行声明
+# hash.each_with_index do |[key, value], index|
 #  puts key, value, index
 #  end

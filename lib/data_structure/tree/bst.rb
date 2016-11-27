@@ -24,12 +24,10 @@ class Algo::DataStructure::BinarySearchTree::Node
 end
 
 class Algo::DataStructure::BinarySearchTree
-  def initialize(up: nil, down: nil)
-    raise "#{up.class} | #{up.inspect}" unless up.nil? || up.is_a?(Proc)
-    raise "#{down.class} | #{down.inspect}" unless down.nil? || down.is_a?(Proc)
+  def initialize(augment: nil)
+    raise "#{augment.class} | #{augment.inspect}" unless augment.nil? || augment.is_a?(Proc)
     super()
-    @up = up if up
-    @down = down if down
+    @augment = augment if augment
   end
 
   public
@@ -38,33 +36,33 @@ class Algo::DataStructure::BinarySearchTree
     _size(@root)
   end
 
-  def key(key, &blk)
-    tree = _key(@root, key, &blk) and tree.value
+  def key(key)
+    tree = _key(@root, key) and tree.value
   end
   alias_method :search, :key
 
-  def max(&blk)
-    tree = _max(@root, &blk) and [tree.key, tree.value]
+  def max
+    tree = _max(@root) and [tree.key, tree.value]
   end
 
-  def min(&blk)
-    tree = _min(@root, &blk) and [tree.key, tree.value]
+  def min
+    tree = _min(@root) and [tree.key, tree.value]
   end
 
   def insert(key, value)
     @root = _insert(@root, key, value)
   end
 
-  def delete(key, &blk)
-    @root = _delete(@root, key, &blk) if @root
+  def delete(key)
+    @root = _delete(@root, key) if @root
   end
 
-  def del_max(&blk)
-    @root = _del_max(@root, &blk) if @root
+  def del_max
+    @root = _del_max(@root) if @root
   end
 
-  def del_min(&blk)
-    @root = _del_min(@root, &blk) if @root
+  def del_min
+    @root = _del_min(@root) if @root
   end
 
   protected
@@ -129,7 +127,7 @@ class Algo::DataStructure::BinarySearchTree
     end
   end
 
-  private
+  protected
 
   def _find_iterative_(tree, *args, find_which, find_it)
     raise "#{tree.class} | #{tree}" unless tree.nil? || tree.class <= Node
@@ -137,11 +135,13 @@ class Algo::DataStructure::BinarySearchTree
     raise "#{find_it.class} | #{find_it.inspect}" unless find_it.is_a?(Proc)
 
     until tree.nil?
-      @down.call(tree) if @down
-      yield tree if block_given?
+      @augment.call(tree, :down) if @augment
+      yield(tree, :down) if block_given?
       break if find_it.call(tree, *args)
       tree = find_which.call(tree, *args)
     end
+    yield(tree, :up) if block_given? && tree
+    @augment.call(tree, :up) if @augment && tree
     tree
   end
 
@@ -154,6 +154,8 @@ class Algo::DataStructure::BinarySearchTree
     if tree.nil?
       tree = find_nil.call(tree, *args)
     else
+      @augment.call(tree, :down) if @augment
+      yield(tree, :down) if block_given?
       case find_which.call(tree, *args)
       when -1
         tree.left = _find_recursive_(tree.left, *args, find_which, find_it, find_nil)
@@ -165,8 +167,8 @@ class Algo::DataStructure::BinarySearchTree
         raise "#{find_which.call(tree, *args)} | #{tree} | #{args}"
       end
     end
-    @up.call(tree) if @up && tree
-    yield tree if block_given? && tree
+    yield(tree, :up) if block_given? && tree
+    @augment.call(tree, :up) if @augment && tree
     tree
   end
 end
