@@ -596,7 +596,7 @@ Style/ParallelAssignment:
                   It will only warn when the number of variables
                   matches on both sides of the assignment.
   StyleGuide: '#parallel-assignment'
-  Enabled: true
+  Enabled: false
 
 Style/ParenthesesAroundCondition:
   Description: >-
@@ -921,7 +921,7 @@ Style/TrailingUnderscoreVariable:
                  Checks for the usage of unneeded trailing underscores at the
                  end of parallel variable assignment.
   AllowNamedUnderscoreVariables: true
-  Enabled: true
+  Enabled: false
 
 Style/VariableInterpolation:
   Description: >-
@@ -1230,7 +1230,7 @@ Lint/ShadowingOuterLocalVariable:
   Description: >-
                  Do not use the same name as outer local variable
                  for block arguments or block local variables.
-  Enabled: true
+  Enabled: false
 
 Lint/StringConversionInInterpolation:
   Description: 'Checks for Object#to_s usage in string interpolation.'

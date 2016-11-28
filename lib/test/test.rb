@@ -1,6 +1,9 @@
+# coding: utf-8
+# -*- coding: utf-8 -*-
+
 module Algo
   module Test
-    class Time
+    module Time
       def self.runtime
         return 0 unless block_given?
         t = ::Time.now

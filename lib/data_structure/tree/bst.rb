@@ -1,3 +1,6 @@
+# coding: utf-8
+# -*- coding: utf-8 -*-
+
 require_relative 'tree'
 
 module Algo
@@ -24,10 +27,12 @@ class Algo::DataStructure::BinarySearchTree::Node
 end
 
 class Algo::DataStructure::BinarySearchTree
-  def initialize(augment: nil)
-    raise "#{augment.class} | #{augment.inspect}" unless augment.nil? || augment.is_a?(Proc)
+  def initialize(find_up: nil, find_down: nil)
+    raise "#{find_up.class} | #{find_up.inspect}" unless find_up.nil? || find_up.is_a?(Proc)
+    raise "#{find_down.class} | #{find_down.inspect}" unless find_down.nil? || find_down.is_a?(Proc)
     super()
-    @augment = augment if augment
+    @find_up = find_up if find_up
+    @find_down = find_down if find_down
   end
 
   public
@@ -35,6 +40,7 @@ class Algo::DataStructure::BinarySearchTree
   def size
     _size(@root)
   end
+  alias_method :length, :size
 
   def key(key)
     tree = _key(@root, key) and tree.value
@@ -87,17 +93,13 @@ class Algo::DataStructure::BinarySearchTree
   def _insert(tree, key, value, &blk)
     _find_recursive_(tree, key, value,
                      ->(tree, key, _) { key <=> tree.key },
-                     ->(tree, _, value) do
-                       tree.value = value
-                       tree
-                     end,
+                     ->(tree, _, value) { Node.new(tree.key, value, tree.left, tree.right) },
                      ->(_, key, value) { Node.new(key, value) }, &blk)
   end
 
   def _delete(tree, key, &blk)
     _find_recursive_(tree, key,
                      ->(tree, key) { key <=> tree.key },
-                     ->(_, _) { nil },
                      ->(tree, _) do
                        return tree.right if tree.left.nil?
                        return tree.left if tree.right.nil?
@@ -106,7 +108,8 @@ class Algo::DataStructure::BinarySearchTree
                        tree.value = m.value
                        tree.left = _del_max(tree.left, &blk)
                        tree
-                     end, &blk)
+                     end,
+                     ->(_, _) { nil }, &blk)
   end
 
   def _del_max(tree, &blk)
@@ -135,13 +138,13 @@ class Algo::DataStructure::BinarySearchTree
     raise "#{find_it.class} | #{find_it.inspect}" unless find_it.is_a?(Proc)
 
     until tree.nil?
-      @augment.call(tree, :down) if @augment
+      @find_down.call(tree) if @find_down
       yield(tree, :down) if block_given?
       break if find_it.call(tree, *args)
       tree = find_which.call(tree, *args)
     end
     yield(tree, :up) if block_given? && tree
-    @augment.call(tree, :up) if @augment && tree
+    @find_up.call(tree) if @find_up && tree
     tree
   end
 
@@ -154,7 +157,7 @@ class Algo::DataStructure::BinarySearchTree
     if tree.nil?
       tree = find_nil.call(tree, *args)
     else
-      @augment.call(tree, :down) if @augment
+      @find_down.call(tree) if @find_down
       yield(tree, :down) if block_given?
       case find_which.call(tree, *args)
       when -1
@@ -168,8 +171,32 @@ class Algo::DataStructure::BinarySearchTree
       end
     end
     yield(tree, :up) if block_given? && tree
-    @augment.call(tree, :up) if @augment && tree
+    @find_up.call(tree) if @find_up && tree
     tree
+  end
+end
+
+class Algo::DataStructure::SelfAdjustingBinarySearchTree
+  protected
+
+  def _rotate_left_(tree)
+    right = tree.right
+    tree.right = right.left
+    right.left = tree
+    tree = right
+  end
+
+  def _rotate_right_(tree)
+    left = tree.left
+    tree.left = left.right
+    left.right = tree
+    tree = left
+  end
+end
+
+class Algo::DataStructure::SelfBalancingBinarySearchTree
+  def _balance_(_tree)
+    raise
   end
 end
 

@@ -1,3 +1,6 @@
+# coding: utf-8
+# -*- coding: utf-8 -*-
+
 require_relative '../test'
 require_relative '../../../lib/data_structure/tree/tree'
 require_relative '../../../lib/data_structure/tree/bst'
@@ -23,7 +26,8 @@ class Algo::Test::DataStructure::TestTree
     @cls = cls
     @args = args
     @num = num
-    @check = check ? :_check : :_check_
+    @check = check ? (:_check if @cls.instance_methods.include?(:_check)) :
+        (:_check_ if @cls.instance_methods.include?(:_check_))
 
     @msg_search = ->(p) { '"search #{%s} return #{tree.search(%s[0])}"' % [p, p] }
   end
@@ -54,13 +58,13 @@ class Algo::Test::DataStructure::TestTree
 
   def run(cases, tree, main, args, before, after, finish, total = nil)
     raise "#{cases.class} | #{cases.inspect}" unless cases.is_a?(Hash) && !cases.empty?
-    raise "#{tree.class} | #{tree.inspect}" unless tree.is_a?(@cls)
+    raise "#{tree.class} | #{tree.inspect}" unless tree.instance_of?(@cls)
     raise "#{main.class} | #{main.inspect}" unless main.is_a?(Symbol)
     raise "#{args.class} | #{args.inspect}" unless args.nil? || args.is_a?(Proc) || args.is_a?(Array)
     raise "#{before.class} | #{before.inspect}" unless before.nil? || before.is_a?(Proc)
     raise "#{after.class} | #{after.inspect}" unless after.nil? || after.is_a?(Proc)
     raise "#{finish.class} | #{finish.inspect}" unless finish.nil? || finish.is_a?(Proc)
-    raise "#{total.class} | #{total.inspect}" unless total.nil? || total.methods.include?(:<<)
+    raise "#{total.class} | #{total.inspect}" unless total.nil? || total.respond_to?(:<<)
     time = 0
     cases.each_with_index do |*_|
       org = before.call(*_) if before
@@ -83,7 +87,7 @@ class Algo::Test::DataStructure::TestTree
     run(@cases, tree, :insert, ->(p, *) { p },
         ->(p, *) { raise eval(@msg_search.call('p')) unless tree.search(p[0]).nil? },
         ->(p, *) { raise eval(@msg_search.call('p')) unless tree.search(p[0]).equal?(p[1]) },
-        ->(*) { tree.check(@cases.size) })
+        ->(*) { tree.check(@cases.size) if tree.respond_to?(:check) })
     tree
   end
 
@@ -93,7 +97,7 @@ class Algo::Test::DataStructure::TestTree
     run(@cases, tree, :delete, ->(p, *) { p[0] },
         ->(p, *) { raise eval(@msg_search.call('p')) unless tree.search(p[0]).equal?(p[1]) },
         ->(p, *) { raise eval(@msg_search.call('p')) unless tree.search(p[0]).nil? },
-        ->(*) { tree.check(0) })
+        ->(*) { tree.check(0) if tree.methods.respond_to?(:check) })
     yield if block_given?
   end
 
@@ -107,7 +111,7 @@ class Algo::Test::DataStructure::TestTree
       run(@cases, tree, del, nil,
           ->(*) { tree.send(get) },
           ->(*, o, _) { raise eval(@msg_search.call('o')) unless tree.search(o[0]).nil? },
-          ->(*) { tree.check(0) })
+          ->(*) { tree.check(0) if tree.methods.respond_to?(:check) })
       yield if block_given?
     end
   end
