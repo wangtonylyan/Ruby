@@ -47,6 +47,7 @@ hash = { a: 1, b: 2 } # 使用此格式进行声明
 
 # Block
 # block的作用：循环，资源管理(file open, thread run)
+# block中的返回尽量使用next，而不是return
 
 # Module & Class
 # 调用module中方法的方式与调用class中类方法的方式是完全一致的
@@ -56,5 +57,14 @@ hash = { a: 1, b: 2 } # 使用此格式进行声明
 # puts to_s, p inspect
 
 # Metaprogramming
-# send, respond_to?
+# send, respond_to? (仅public method会返回true)
 # is_a? (= kind_of?, check inheritance), instance_of?
+
+# alias是与其定义处的函数所绑定的，并不随继承、重定义等而变化
+
+# Method arguments
+# 五种：regular argument, keyword argument, splat argument, double splat argument, block argument
+# method_name(regular(= default value), *splat, &block)
+# method_name(regular, keyword: default value, **splat, &block)
+# regular argument是仅方法内部可见的局部变量，而不是keyword argument
+# splat和double splat的作用是收集所有regular、keyword和block之外类型的传参

@@ -3,7 +3,6 @@
 
 require_relative '../test'
 require_relative '../../../lib/data_structure/tree/tree'
-require_relative '../../../lib/data_structure/tree/bst'
 
 module Algo
   module Test
@@ -17,25 +16,30 @@ module Algo
 end
 
 class Algo::Test::DataStructure::TestTree
-  def initialize(cls, num = 1000, check = true, **args)
-    raise "#{cls.class} | #{cls.inspect}" unless cls < Algo::DataStructure::Tree
+  def initialize(cls, num: 1000, check: true, **args)
+    raise "#{cls.class} | #{cls.inspect}" unless cls.is_a?(Class) && cls < Algo::DataStructure::Tree
     raise "#{num.class} | #{num.inspect}" unless num > 0
     raise "#{check.class} | #{check.inspect}" unless check.equal?(true) || check.equal?(false)
     raise "#{args.class} | #{args.inspect}" unless args.is_a?(Hash)
     super()
     @cls = cls
-    @args = args
+    @args = args unless args.empty?
     @num = num
     @check = check ? (:_check if @cls.instance_methods.include?(:_check)) :
         (:_check_ if @cls.instance_methods.include?(:_check_))
 
-    @msg_search = ->(p) { '"search #{%s} return #{tree.search(%s[0])}"' % [p, p] }
+    @msg_search = ->(p) { '"search #{%s} returns #{tree.search(%s[0])}"' % [p, p] }
   end
 
   public
 
   def main(*args)
-    args = [:del_max_min, :delete] if args.empty?
+    raise "#{args}" unless args.select(&->(m) { !m.is_a?(Symbol) && !m.is_a?(String) }).empty?
+    if args.empty?
+      args = [:del_max_min, :delete]
+    else
+      args.select!(&->(m) { methods.include?(m) })
+    end
     puts '=' * 30
     args.each do |func|
       send(func, &-> { puts '-' * 30 })
@@ -83,7 +87,7 @@ class Algo::Test::DataStructure::TestTree
   def insert
     raise "#{@cls.instance_methods}" unless @cls.instance_methods.include?(:insert)
     @cases = create(@num)
-    tree = @cls.new(**@args)
+    tree = @args ? @cls.new(**@args) : @cls.new
     run(@cases, tree, :insert, ->(p, *) { p },
         ->(p, *) { raise eval(@msg_search.call('p')) unless tree.search(p[0]).nil? },
         ->(p, *) { raise eval(@msg_search.call('p')) unless tree.search(p[0]).equal?(p[1]) },
@@ -97,7 +101,7 @@ class Algo::Test::DataStructure::TestTree
     run(@cases, tree, :delete, ->(p, *) { p[0] },
         ->(p, *) { raise eval(@msg_search.call('p')) unless tree.search(p[0]).equal?(p[1]) },
         ->(p, *) { raise eval(@msg_search.call('p')) unless tree.search(p[0]).nil? },
-        ->(*) { tree.check(0) if tree.methods.respond_to?(:check) })
+        ->(*) { tree.check(0) if tree.respond_to?(:check) })
     yield if block_given?
   end
 
@@ -111,13 +115,13 @@ class Algo::Test::DataStructure::TestTree
       run(@cases, tree, del, nil,
           ->(*) { tree.send(get) },
           ->(*, o, _) { raise eval(@msg_search.call('o')) unless tree.search(o[0]).nil? },
-          ->(*) { tree.check(0) if tree.methods.respond_to?(:check) })
+          ->(*) { tree.check(0) if tree.respond_to?(:check) })
       yield if block_given?
     end
   end
 end
 
 if __FILE__ == $PROGRAM_NAME
-  Algo::Test::DataStructure::TestTree.new(Algo::DataStructure::BinarySearchTree).main
+  nil
   puts "done: #{__FILE__}"
 end
