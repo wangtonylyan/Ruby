@@ -38,6 +38,7 @@ class Algo::DataStructure::TreeTest
     args.each do |func|
       send(func, &-> { puts '-' * 30 })
     end
+    puts "pass: #{@cls.inspect}"
     puts '=' * 30
   end
 

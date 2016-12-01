@@ -48,7 +48,7 @@ Style/ArrayJoin:
 Style/AsciiComments:
   Description: 'Use only ascii symbols in comments.'
   StyleGuide: '#english-comments'
-  Enabled: true
+  Enabled: false
 
 Style/AsciiIdentifiers:
   Description: 'Use only ascii symbols in identifiers.'
@@ -419,7 +419,7 @@ Style/MethodName:
 Style/MethodMissing:
   Description: 'Avoid using `method_missing`.'
   StyleGuide: '#no-method-missing'
-  Enabled: true
+  Enabled: false
 
 Style/ModuleFunction:
   Description: 'Checks for usage of `extend self` in modules.'
@@ -972,12 +972,12 @@ Metrics/AbcSize:
                  A calculated magnitude based on number of assignments,
                  branches, and conditions.
   Reference: 'http://c2.com/cgi/wiki?AbcMetric'
-  Enabled: true
+  Enabled: false
 
 Metrics/BlockNesting:
   Description: 'Avoid excessive block nesting'
   StyleGuide: '#three-is-the-number-thou-shalt-count'
-  Enabled: true
+  Enabled: false
 
 Metrics/ClassLength:
   Description: 'Avoid classes longer than 100 lines of code.'
@@ -1010,7 +1010,7 @@ Metrics/BlockLength:
 Metrics/ParameterLists:
   Description: 'Avoid parameter lists longer than three or four parameters.'
   StyleGuide: '#too-many-params'
-  Enabled: true
+  Enabled: false
 
 Metrics/PerceivedComplexity:
   Description: >-
@@ -1117,7 +1117,7 @@ Lint/EnsureReturn:
 
 Lint/Eval:
   Description: 'The use of eval represents a serious security risk.'
-  Enabled: true
+  Enabled: false
 
 Lint/FloatOutOfRange:
   Description: >-
@@ -1272,7 +1272,7 @@ Lint/UnreachableCode:
 
 Lint/UselessAccessModifier:
   Description: 'Checks for useless access modifiers.'
-  Enabled: true
+  Enabled: false
   ContextCreatingMethods: []
 
 Lint/UselessAssignment:

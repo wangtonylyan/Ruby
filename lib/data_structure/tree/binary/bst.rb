@@ -141,12 +141,11 @@ class Algo::DataStructure::BinarySearchTree
 
   protected
 
-  def _call_(func, tree, *args, **argv)
+  def _call_(func, tree, *args, **argv, &blk)
     raise "#{protected_methods} | #{func.class} | #{func.inspect}" unless
         func.is_a?(Symbol) && protected_methods.include?(func)
-    raise 'No Block Is Allowed For _call_' if block_given?
 
-    send(func, tree, *args, **argv)
+    send(func, tree, *args, **argv, &blk)
   end
 
   def _find_(func, tree, *args, **argv)
@@ -219,14 +218,14 @@ class Algo::DataStructure::SelfAdjustingBinarySearchTree
     right = tree.right
     tree.right = right.left
     right.left = tree
-    tree = right
+    right
   end
 
   def _rotate_right(tree)
     left = tree.left
     tree.left = left.right
     left.right = tree
-    tree = left
+    left
   end
 end
 
