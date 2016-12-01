@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 require_relative '../test'
-require_relative '../../data_structure/tree/tree'
+require_relative '../../lib/data_structure/tree/tree'
 
 module Algo
   module DataStructure
@@ -35,9 +35,7 @@ class Algo::DataStructure::TreeTest
       args.select!(&->(m) { methods.include?(m) })
     end
     puts '=' * 30
-    args.each do |func|
-      send(func, &-> { puts '-' * 30 })
-    end
+    args.each { |func| send(func) { puts '-' * 30 } }
     puts "pass: #{@cls.inspect}"
     puts '=' * 30
   end
@@ -86,6 +84,7 @@ class Algo::DataStructure::TreeTest
         ->(p, *) { raise eval(@msg_search.call('p')) unless tree.search(p[0]).nil? },
         ->(p, *) { raise eval(@msg_search.call('p')) unless tree.search(p[0]).equal?(p[1]) },
         ->(*) { tree.check(@cases.size) if tree.respond_to?(:check) })
+    yield if block_given?
     tree
   end
 
