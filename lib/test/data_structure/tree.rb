@@ -2,31 +2,25 @@
 # -*- coding: utf-8 -*-
 
 require_relative '../test'
-require_relative '../../../lib/data_structure/tree/tree'
+require_relative '../../data_structure/tree/tree'
 
 module Algo
-  module Test
-    module DataStructure
-      class TestTree
-      end
-      class TestBinarySearchTree < TestTree
-      end
+  module DataStructure
+    class TreeTest
     end
   end
 end
 
-class Algo::Test::DataStructure::TestTree
-  def initialize(cls, num: 1000, check: true, **args)
+class Algo::DataStructure::TreeTest
+  def initialize(cls: nil, argv: nil, num: nil)
     raise "#{cls.class} | #{cls.inspect}" unless cls.is_a?(Class) && cls < Algo::DataStructure::Tree
-    raise "#{num.class} | #{num.inspect}" unless num > 0
-    raise "#{check.class} | #{check.inspect}" unless check.equal?(true) || check.equal?(false)
-    raise "#{args.class} | #{args.inspect}" unless args.is_a?(Hash)
+    raise "#{argv.class} | #{argv.inspect}" unless argv.is_a?(Hash)
+    raise "#{num.class} | #{num.inspect}" unless num.is_a?(Integer) && num > 0
+
     super()
     @cls = cls
-    @args = args unless args.empty?
+    @argv = argv
     @num = num
-    @check = check ? (:_check if @cls.instance_methods.include?(:_check)) :
-        (:_check_ if @cls.instance_methods.include?(:_check_))
 
     @msg_search = ->(p) { '"search #{%s} returns #{tree.search(%s[0])}"' % [p, p] }
   end
@@ -74,8 +68,7 @@ class Algo::Test::DataStructure::TestTree
       org = before.call(*_) if before
       ret = nil
       time += Algo::Test::Time.runtime do
-        ret = tree.public_send(main, *(args.is_a?(Proc) ? args.call(*_) : args),
-                               &->(*_) { tree.send(@check, *_) if @check })
+        ret = tree.public_send(main, *(args.is_a?(Proc) ? args.call(*_) : args))
       end
       ret = after.call(*_, org, ret) if after
       total <<= ret if total
@@ -87,7 +80,7 @@ class Algo::Test::DataStructure::TestTree
   def insert
     raise "#{@cls.instance_methods}" unless @cls.instance_methods.include?(:insert)
     @cases = create(@num)
-    tree = @args ? @cls.new(**@args) : @cls.new
+    tree = @argv.empty? ? @cls.new : @cls.new(**@argv)
     run(@cases, tree, :insert, ->(p, *) { p },
         ->(p, *) { raise eval(@msg_search.call('p')) unless tree.search(p[0]).nil? },
         ->(p, *) { raise eval(@msg_search.call('p')) unless tree.search(p[0]).equal?(p[1]) },

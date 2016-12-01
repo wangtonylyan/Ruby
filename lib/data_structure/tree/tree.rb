@@ -61,12 +61,4 @@ class Algo::DataStructure::Tree
   def del_min
     raise
   end
-
-  def _check
-    raise
-  end
-
-  def _check_
-    raise
-  end
 end
