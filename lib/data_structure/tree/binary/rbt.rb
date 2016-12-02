@@ -73,4 +73,29 @@ class Algo::DataStructure::RedBlackTree
     end
     tree
   end
+
+  def _make_left_red(tree)
+    unless tree.nil? || tree.left.nil?
+      raise "#{tree} | #{tree.left} | #{tree.right}" unless
+          tree.color || tree.left.color || (tree.right && tree.right.color)
+      return tree if tree.left.color || (tree.left.left && tree.left.left.color) ||
+                     (tree.left.right && tree.left.right.color)
+      raise "#{tree} | #{tree.left}" if tree.right.nil?
+      if tree.color
+        tree = _flip_color(tree)
+        tree.right = _rotate_right(tree.right) if tree.right.left && tree.right.left.color
+        if tree.right.right && tree.right.right.color
+          tree = _rotate_left(tree)
+          tree = _flip_color(tree)
+        end
+      else
+        raise "#{tree} | #{tree.left} | #{tree.right}" unless tree.right.color
+        tree = _rotate_left(tree)
+      end
+      raise "#{tree} | #{tree.left} | #{tree.right}" unless tree.left.color ||
+                                                            (tree.left.left && tree.left.left.color) ||
+                                                            (tree.left.right && tree.left.right.color)
+    end
+    tree
+  end
 end
