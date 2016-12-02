@@ -1,8 +1,8 @@
 # coding: utf-8
 # -*- coding: utf-8 -*-
 
-require_relative '../test'
-require_relative '../../lib/data_structure/tree/tree'
+require_relative '../../test'
+require_relative '../../../lib/data_structure/tree/tree'
 
 module Algo
   module DataStructure

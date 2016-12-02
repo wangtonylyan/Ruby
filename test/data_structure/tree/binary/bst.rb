@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 require_relative '../tree'
-require_relative '../../../lib/data_structure/tree/binary/bst'
+require_relative '../../../../lib/data_structure/tree/binary/bst'
 
 module Algo
   module DataStructure
