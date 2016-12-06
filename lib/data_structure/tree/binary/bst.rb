@@ -44,32 +44,32 @@ class Algo::DataStructure::BinarySearchTree
   alias_method :length, :size
 
   def key(key)
-    tree = _call_(:_key, @root, key) and tree.value
+    tree = _call_(method(:_key), @root, key) and tree.value
   end
   alias_method :search, :key
 
   def max
-    tree = _call_(:_max, @root) and [tree.key, tree.value]
+    tree = _call_(method(:_max), @root) and [tree.key, tree.value]
   end
 
   def min
-    tree = _call_(:_min, @root) and [tree.key, tree.value]
+    tree = _call_(method(:_min), @root) and [tree.key, tree.value]
   end
 
   def insert(key, value)
-    @root = _call_(:_insert, @root, key, value)
+    @root = _call_(method(:_insert), @root, key, value)
   end
 
   def delete(key)
-    @root = _call_(:_delete, @root, key) if @root
+    @root = _call_(method(:_delete), @root, key) if @root
   end
 
   def del_max
-    @root = _call_(:_del_max, @root) if @root
+    @root = _call_(method(:_del_max), @root) if @root
   end
 
   def del_min
-    @root = _call_(:_del_min, @root) if @root
+    @root = _call_(method(:_del_min), @root) if @root
   end
 
   protected
@@ -79,28 +79,28 @@ class Algo::DataStructure::BinarySearchTree
   end
 
   def _key(tree, key, down: nil, up: nil, &blk)
-    _find_(:_find_iterative_, tree,
+    _find_(method(:_find_iterative_), tree,
            find_which: ->(tree) { key < tree.key ? tree.left : tree.right },
            find_it:    ->(tree) { tree.key.equal?(key) },
            find_down: down, find_up: up, &blk)
   end
 
   def _max(tree, down: nil, up: nil, &blk)
-    _find_(:_find_iterative_, tree,
+    _find_(method(:_find_iterative_), tree,
            find_which: ->(tree) { tree.right },
            find_it:    ->(tree) { tree.right.nil? },
            find_down: down, find_up: up, &blk)
   end
 
   def _min(tree, down: nil, up: nil, &blk)
-    _find_(:_find_iterative_, tree,
+    _find_(method(:_find_iterative_), tree,
            find_which: ->(tree) { tree.left },
            find_it: ->(tree) { tree.left.nil? },
            find_down: down, find_up: up, &blk)
   end
 
   def _insert(tree, key, value, down: nil, up: nil, &blk)
-    _find_(:_find_recursive_, tree, key, value,
+    _find_(method(:_find_recursive_), tree, key, value,
            find_which: ->(tree, key, _) { key <=> tree.key },
            find_it:    ->(tree, _, value) { self.class::Node.new(tree.key, value, tree.left, tree.right) },
            find_nil:   ->(_, key, value) { self.class::Node.new(key, value) },
@@ -108,7 +108,7 @@ class Algo::DataStructure::BinarySearchTree
   end
 
   def _delete(tree, key, down: nil, up: nil, &blk)
-    _find_(:_find_recursive_, tree, key,
+    _find_(method(:_find_recursive_), tree, key,
            find_which: ->(tree, key) { key <=> tree.key },
            find_it:    ->(tree, _) do
              return tree.right if tree.left.nil?
@@ -124,7 +124,7 @@ class Algo::DataStructure::BinarySearchTree
   end
 
   def _del_max(tree, down: nil, up: nil, &blk)
-    _find_(:_find_recursive_, tree,
+    _find_(method(:_find_recursive_), tree,
            find_which: ->(tree) { tree.right.nil? ? 0 : 1 },
            find_it:    ->(tree) { tree.left },
            find_nil:   ->(tree) { raise "#{tree.class} | #{tree}" },
@@ -132,7 +132,7 @@ class Algo::DataStructure::BinarySearchTree
   end
 
   def _del_min(tree, down: nil, up: nil, &blk)
-    _find_(:_find_recursive_, tree,
+    _find_(method(:_find_recursive_), tree,
            find_which: ->(tree) { tree.left.nil? ? 0 : -1 },
            find_it:    ->(tree) { tree.right },
            find_nil:   ->(tree) { raise "#{tree.class} | #{tree}" },
@@ -141,18 +141,21 @@ class Algo::DataStructure::BinarySearchTree
 
   protected
 
+  # a wrapper for the internal _xxx methods
+  # This single entrance is reserved for the future modification by open class or inheritance.
   def _call_(func, tree, *args, **argv, &blk)
-    raise "#{protected_methods} | #{func.class} | #{func.inspect}" unless
-        func.is_a?(Symbol) && protected_methods.include?(func)
+    raise "#{func.class} | #{func.inspect}" unless func.is_a?(Method) && protected_methods.include?(func.name)
 
-    send(func, tree, *args, **argv, &blk)
+    func.call(tree, *args, **argv, &blk)
   end
 
+  # a wrapper for the internal _find_xxx_ methods
+  # apply class-level functions as the block
   def _find_(func, tree, *args, **argv)
-    raise "#{func.class} | #{func.inspect}" unless
-        func.is_a?(Symbol) && [:_find_iterative_, :_find_recursive_].include?(func)
+    raise "#{func.class} | #{func.inspect}" unless func.is_a?(Method) &&
+                                                   [:_find_iterative_, :_find_recursive_].include?(func.name)
 
-    send(func, tree, *args, **argv) do |tree, dir|
+    func.call(tree, *args, **argv) do |tree, dir|
       unless tree.nil?
         send(@augment_down, tree) if @augment_down && dir == :down
         send(@augment_up, tree) if @augment_up && dir == :up
@@ -165,8 +168,9 @@ class Algo::DataStructure::BinarySearchTree
     raise "#{self.class::Node} | #{tree.class} | #{tree}" unless tree.nil? || tree.instance_of?(self.class::Node)
     raise "#{find_which.class} | #{find_which.inspect}" unless find_which.is_a?(Proc)
     raise "#{find_it.class} | #{find_it.inspect}" unless find_it.is_a?(Proc)
-    raise "#{find_down.class} | #{find_down.inspect}" unless find_down.nil? || find_down.is_a?(Proc)
-    raise "#{find_up.class} | #{find_up.inspect}" unless find_up.nil? || find_up.is_a?(Proc)
+    raise "#{find_down.class} | #{find_down.inspect}" unless find_down.nil? || find_down.is_a?(Proc) ||
+                                                             find_down.is_a?(Method)
+    raise "#{find_up.class} | #{find_up.inspect}" unless find_up.nil? || find_up.is_a?(Proc) || find_up.is_a?(Method)
 
     until tree.nil?
       yield(tree, :down) if block_given?
@@ -184,8 +188,9 @@ class Algo::DataStructure::BinarySearchTree
     raise "#{find_which.class} | #{find_which.inspect}" unless find_which.is_a?(Proc)
     raise "#{find_it.class} | #{find_it.inspect}" unless find_it.is_a?(Proc)
     raise "#{find_nil.class} | #{find_nil.inspect}" unless find_nil.is_a?(Proc)
-    raise "#{find_down.class} | #{find_down.inspect}" unless find_down.nil? || find_down.is_a?(Proc)
-    raise "#{find_up.class} | #{find_up.inspect}" unless find_up.nil? || find_up.is_a?(Proc)
+    raise "#{find_down.class} | #{find_down.inspect}" unless find_down.nil? || find_down.is_a?(Proc) ||
+                                                             find_down.is_a?(Method)
+    raise "#{find_up.class} | #{find_up.inspect}" unless find_up.nil? || find_up.is_a?(Proc) || find_up.is_a?(Method)
 
     if tree.nil?
       tree = find_nil.call(tree, *args)
@@ -193,16 +198,12 @@ class Algo::DataStructure::BinarySearchTree
       yield(tree, :down) if block_given?
       tree = find_down.call(tree) if find_down
       case find_which.call(tree, *args)
-      when -1
-        tree.left = _find_recursive_(tree.left, *args, find_which: find_which, find_it: find_it,
-                                     find_nil: find_nil, find_down: find_down, find_up: find_up)
-      when 1
-        tree.right = _find_recursive_(tree.right, *args, find_which: find_which, find_it: find_it,
-                                      find_nil: find_nil, find_down: find_down, find_up: find_up)
-      when 0
-        tree = find_it.call(tree, *args)
-      else
-        raise "#{find_which.call(tree, *args)} | #{tree} | #{args}"
+      when -1 then tree.left = _find_recursive_(tree.left, *args, find_which: find_which, find_it: find_it,
+                                                find_nil: find_nil, find_down: find_down, find_up: find_up)
+      when 1 then tree.right = _find_recursive_(tree.right, *args, find_which: find_which, find_it: find_it,
+                                                find_nil: find_nil, find_down: find_down, find_up: find_up)
+      when 0 then tree = find_it.call(tree, *args)
+      else raise "#{find_which.call(tree, *args)} | #{tree} | #{args}"
       end
     end
     tree = find_up.call(tree) if find_up && tree
@@ -215,13 +216,23 @@ class Algo::DataStructure::SelfAdjustingBinarySearchTree
   protected
 
   def _rotate_left(tree)
+    tree = _rotate_left_(tree) unless tree.nil?
+    tree
+  end
+
+  def _rotate_right(tree)
+    tree = _rotate_right_(tree) unless tree.nil?
+    tree
+  end
+
+  def _rotate_left_(tree)
     right = tree.right
     tree.right = right.left
     right.left = tree
     right
   end
 
-  def _rotate_right(tree)
+  def _rotate_right_(tree)
     left = tree.left
     tree.left = left.right
     left.right = tree
