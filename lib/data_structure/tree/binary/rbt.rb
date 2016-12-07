@@ -119,7 +119,7 @@ class Algo::DataStructure::RedBlackTree
   protected
 
   def _rotate_left(tree)
-    unless tree.nil? && tree.right.nil?
+    unless tree.nil? || tree.right.nil?
       tree = _rotate_left_(tree)
       tree.color, tree.left.color = tree.left.color, tree.color
     end

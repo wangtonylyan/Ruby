@@ -216,12 +216,12 @@ class Algo::DataStructure::SelfAdjustingBinarySearchTree
   protected
 
   def _rotate_left(tree)
-    tree = _rotate_left_(tree) unless tree.nil?
+    tree = _rotate_left_(tree) unless tree.nil? || tree.right.nil?
     tree
   end
 
   def _rotate_right(tree)
-    tree = _rotate_right_(tree) unless tree.nil?
+    tree = _rotate_right_(tree) unless tree.nil? || tree.left.nil?
     tree
   end
 
