@@ -28,7 +28,7 @@ class Algo::DataStructure::TreeTest
   public
 
   def main(*args)
-    raise "#{args}" unless args.select(&->(m) { !m.is_a?(Symbol) && !m.is_a?(String) }).empty?
+    raise "#{args}" unless args.reject(&->(m) { m.is_a?(Symbol) || m.is_a?(String) }).empty?
     if args.empty?
       args = [:del_max_min, :delete]
     else

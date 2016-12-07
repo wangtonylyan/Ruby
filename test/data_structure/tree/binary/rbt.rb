@@ -19,10 +19,10 @@ module Algo
       def _check_root_(tree, left = 0, right = 0)
         super(tree, left, right)
         return 0 if tree.nil?
-        # the following assertions cover the same cases as the black-height invariant
+        # the following assertions cover the same cases as the black-height invariant, just for example
         raise "#{tree} | #{tree.left} | #{tree.right}" if tree.left && tree.left.color && tree.right && tree.right.color
-        raise "#{tree} | #{tree.left} | #{tree.right}" if tree.left.nil? && !tree.right.color
-        raise "#{tree} | #{tree.left} | #{tree.right}" if tree.right.nil? && !tree.left.color
+        raise "#{tree} | #{tree.left} | #{tree.right}" if tree.left.nil? && tree.right && !tree.right.color
+        raise "#{tree} | #{tree.left} | #{tree.right}" if tree.right.nil? && tree.left && !tree.left.color
         # black-height invariant: the left and right subtree should hold the same black-height.
         raise "#{left} != #{right}" unless left == right
         # Because this check method is called after each balance operation

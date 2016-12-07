@@ -163,8 +163,7 @@ class Algo::DataStructure::RedBlackTree
           tree.color || tree.left.color || (tree.right && tree.right.color)
       return tree if tree.left.color || (tree.left.left && tree.left.left.color) ||
                      (tree.left.right && tree.left.right.color)
-      # if tree.left exists in black, then the tree.right must exists
-      raise "#{tree} | #{tree.left}" if tree.right.nil?
+      raise "#{tree} | #{tree.left}" if tree.right.nil? # black-height invariant
       if tree.color
         tree = _flip_color(tree)
         tree.right = _rotate_right(tree.right) if tree.right.left && tree.right.left.color
