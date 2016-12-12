@@ -34,13 +34,13 @@ class Main
 end
 
 # 字符串尽量使用单引号
-hash = { a: 1, b: 2 } # 使用此格式进行声明
+# hash = { a: 1, b: 2 } # 使用此格式声明哈希表
 # hash.each_with_index do |[key, value], index|
-#  puts key, value, index
-#  end
 
 # Array
-# each, map, select (= filter), inject (= reduce)
+# each, collect (= return a new array)
+# map, select (= filter), inject (= reduce)
+# :-，表示差集
 
 # Range
 # inclusive: .., exclusive: ...

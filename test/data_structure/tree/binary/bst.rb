@@ -61,7 +61,7 @@ class Algo::DataStructure::BinarySearchTreeTest
       alias_method :__call_, :_call_
       define_method :_call_ do |func, tree, *args, **argv|
         __call_(func, tree, *args, **argv) do |tree, dir|
-          yield(tree, dir) if block_given?
+          raise if block_given?
           send(check_method, tree) if dir == :up
         end
       end
