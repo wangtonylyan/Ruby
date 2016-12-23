@@ -99,7 +99,7 @@ class Algo::DataStructure::TreeTest
   end
 
   def del_max_min
-    [[:max, :del_max], [:min, :del_min]].each do |get, del|
+    [[:getmax, :delmax], [:getmin, :delmin]].each do |get, del|
       raise "#{get.class} | #{get.inspect}" unless get.is_a?(Symbol)
       raise "#{del.class} | #{del.inspect}" unless del.is_a?(Symbol)
       raise "#{@cls.instance_methods}" unless @cls.instance_methods.include?(get)

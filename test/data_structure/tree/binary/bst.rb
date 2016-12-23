@@ -10,7 +10,7 @@ module Algo
       public
 
       def check(size)
-        raise "#{_size(@root)} != #{size}" unless _size(@root) == size
+        raise "#{_length(@root)} != #{size}" unless _length(@root) == size
       end
 
       protected

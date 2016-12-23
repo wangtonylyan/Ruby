@@ -30,7 +30,7 @@ class Algo::DataStructure::Tree
     @root = nil
   end
 
-  def size
+  def length
     raise
   end
 
@@ -38,11 +38,11 @@ class Algo::DataStructure::Tree
     raise
   end
 
-  def max
+  def getmax
     raise
   end
 
-  def min
+  def getmin
     raise
   end
 
@@ -54,11 +54,11 @@ class Algo::DataStructure::Tree
     raise
   end
 
-  def del_max
+  def delmax
     raise
   end
 
-  def del_min
+  def delmin
     raise
   end
 end

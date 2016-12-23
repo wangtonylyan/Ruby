@@ -8,6 +8,33 @@ module Algo
     class BinarySearchTree < Tree
       class Node < Tree::Node
       end
+
+      def self.protected_decorator(*args)
+        args.each do |func|
+          raise "#{func.class} | #{func.inspect}" unless func.is_a?(Symbol) || func.is_a?(String)
+          old_name = func.to_sym
+          new_name = "_#{func}_".to_sym
+          alias_method  new_name, old_name
+          define_method old_name do |*args|
+            send(:_call_, method(old_name), *args)
+          end
+          private old_name
+          protected new_name
+        end
+      end
+
+      def self.private_decorator(*args)
+        args.each do |func|
+          raise "#{func.class} | #{func.inspect}" unless func.is_a?(Symbol) || func.is_a?(String)
+          old_name = func.to_sym
+          new_name = "_#{func}_".to_sym
+          alias_method  new_name, old_name
+          define_method old_name do |*args|
+            send(:_find_, old_name, *args)
+          end
+          private old_name, new_name
+        end
+      end
     end
     class SelfAdjustingBinarySearchTree < BinarySearchTree
     end
@@ -38,113 +65,113 @@ class Algo::DataStructure::BinarySearchTree
 
   public
 
-  def size
-    _size(@root)
-  end
-  alias_method :length, :size
-
-  def key(key)
-    tree = _call_(method(:_key), @root, key) and tree.value
-  end
-  alias_method :search, :key
-
-  def max
-    tree = _call_(method(:_max), @root) and [tree.key, tree.value]
+  def length
+    _length(@root)
   end
 
-  def min
-    tree = _call_(method(:_min), @root) and [tree.key, tree.value]
+  def search(key)
+    tree = _search(@root, key) and tree.value
+  end
+
+  def getmax
+    tree = _getmax(@root) and [tree.key, tree.value]
+  end
+
+  def getmin
+    tree = _getmin(@root) and [tree.key, tree.value]
   end
 
   def insert(key, value)
-    @root = _call_(method(:_insert), @root, key, value)
+    @root = _insert(@root, key, value)
   end
 
   def delete(key)
-    @root = _call_(method(:_delete), @root, key) if @root
+    @root = _delete(@root, key) if @root
   end
 
-  def del_max
-    @root = _call_(method(:_del_max), @root) if @root
+  def delmax
+    @root = _delmax(@root) if @root
   end
 
-  def del_min
-    @root = _call_(method(:_del_min), @root) if @root
+  def delmin
+    @root = _delmin(@root) if @root
   end
 
   protected
 
-  def _size(tree)
-    tree.nil? ? 0 : _size(tree.left) + _size(tree.right) + 1
+  def _length(tree)
+    tree.nil? ? 0 : _length(tree.left) + _length(tree.right) + 1
   end
 
-  def _key(tree, key, down: nil, up: nil, &blk)
-    _find_(method(:_find_iterative_), tree,
-           find_which: ->(tree) { key < tree.key ? tree.left : tree.right },
-           find_it:    ->(tree) { tree.key.equal?(key) },
-           find_down: down, find_up: up, &blk)
+  def _search(tree, key, down: nil, up: nil, &blk)
+    _find_iter_(tree,
+                find_which: ->(tree) { key < tree.key ? tree.left : tree.right },
+                find_it:    ->(tree) { tree.key.equal?(key) },
+                find_down: down, find_up: up, &blk)
   end
 
-  def _max(tree, down: nil, up: nil, &blk)
-    _find_(method(:_find_iterative_), tree,
-           find_which: ->(tree) { tree.right },
-           find_it:    ->(tree) { tree.right.nil? },
-           find_down: down, find_up: up, &blk)
+  def _getmax(tree, down: nil, up: nil, &blk)
+    _find_iter_(tree,
+                find_which: ->(tree) { tree.right },
+                find_it:    ->(tree) { tree.right.nil? },
+                find_down: down, find_up: up, &blk)
   end
 
-  def _min(tree, down: nil, up: nil, &blk)
-    _find_(method(:_find_iterative_), tree,
-           find_which: ->(tree) { tree.left },
-           find_it: ->(tree) { tree.left.nil? },
-           find_down: down, find_up: up, &blk)
+  def _getmin(tree, down: nil, up: nil, &blk)
+    _find_iter_(tree,
+                find_which: ->(tree) { tree.left },
+                find_it: ->(tree) { tree.left.nil? },
+                find_down: down, find_up: up, &blk)
   end
 
   def _insert(tree, key, value, down: nil, up: nil, &blk)
-    _find_(method(:_find_recursive_), tree, key, value,
-           find_which: ->(tree, key, _) { key <=> tree.key },
-           find_it:    ->(tree, _, value) { self.class::Node.new(tree.key, value, tree.left, tree.right) },
-           find_nil:   ->(_, key, value) { self.class::Node.new(key, value) },
-           find_down: down, find_up: up, &blk)
+    _find_recur_(tree, key, value,
+                 find_which: ->(tree, key, _) { key <=> tree.key },
+                 find_it:    ->(tree, _, value) { self.class::Node.new(tree.key, value, tree.left, tree.right) },
+                 find_nil:   ->(_, key, value) { self.class::Node.new(key, value) },
+                 find_down: down, find_up: up, &blk)
   end
 
   def _delete(tree, key, down: nil, up: nil, &blk)
-    _find_(method(:_find_recursive_), tree, key,
-           find_which: ->(tree, key) { key <=> tree.key },
-           find_it:    ->(tree, _) do
-             return tree.right if tree.left.nil?
-             return tree.left if tree.right.nil?
-             m = _max(tree.left, &blk)
-             tree.key = m.key
-             tree.value = m.value
-             tree.left = _del_max(tree.left, down: down, up: up, &blk)
-             tree
-           end,
-           find_nil:   ->(_, _) { nil },
-           find_down: down, find_up: up, &blk)
+    _find_recur_(tree, key,
+                 find_which: ->(tree, key) { key <=> tree.key },
+                 find_it:    ->(tree, _) do
+                   return tree.right if tree.left.nil?
+                   return tree.left if tree.right.nil?
+                   m = _getmax(tree.left, &blk)
+                   tree.key = m.key
+                   tree.value = m.value
+                   tree.left = _delmax(tree.left, down: down, up: up, &blk)
+                   tree
+                 end,
+                 find_nil:   ->(_, _) { nil },
+                 find_down: down, find_up: up, &blk)
   end
 
-  def _del_max(tree, down: nil, up: nil, &blk)
-    _find_(method(:_find_recursive_), tree,
-           find_which: ->(tree) { tree.right.nil? ? 0 : 1 },
-           find_it:    ->(tree) { tree.left },
-           find_nil:   ->(tree) { raise "#{tree.class} | #{tree}" },
-           find_down: down, find_up: up, &blk)
+  def _delmax(tree, down: nil, up: nil, &blk)
+    _find_recur_(tree,
+                 find_which: ->(tree) { tree.right.nil? ? 0 : 1 },
+                 find_it:    ->(tree) { tree.left },
+                 find_nil:   ->(tree) { raise "#{tree.class} | #{tree}" },
+                 find_down: down, find_up: up, &blk)
   end
 
-  def _del_min(tree, down: nil, up: nil, &blk)
-    _find_(method(:_find_recursive_), tree,
-           find_which: ->(tree) { tree.left.nil? ? 0 : -1 },
-           find_it:    ->(tree) { tree.right },
-           find_nil:   ->(tree) { raise "#{tree.class} | #{tree}" },
-           find_down: down, find_up: up, &blk)
+  def _delmin(tree, down: nil, up: nil, &blk)
+    _find_recur_(tree,
+                 find_which: ->(tree) { tree.left.nil? ? 0 : -1 },
+                 find_it:    ->(tree) { tree.right },
+                 find_nil:   ->(tree) { raise "#{tree.class} | #{tree}" },
+                 find_down: down, find_up: up, &blk)
   end
+
+  protected_decorator :_search, :_getmax, :_getmin, :_insert, :_delete, :_delmax, :_delmin
 
   protected
 
   # a wrapper for the internal _xxx methods
   # This single entrance is reserved for the future modification by open class or inheritance.
   def _call_(func, tree, *args, **argv, &blk)
-    raise "#{func.class} | #{func.inspect}" unless func.is_a?(Method) && protected_methods.include?(func.name)
+    raise "#{func.class} | #{func.inspect}" unless func.is_a?(Method)
 
     func.call(tree, *args, **argv, &blk)
   end
@@ -152,8 +179,7 @@ class Algo::DataStructure::BinarySearchTree
   # a wrapper for the internal _find_xxx_ methods
   # apply class-level functions as the block
   def _find_(func, tree, *args, **argv)
-    raise "#{func.class} | #{func.inspect}" unless func.is_a?(Method) &&
-                                                   [:_find_iterative_, :_find_recursive_].include?(func.name)
+    raise "#{func.class} | #{func.inspect}" unless func.is_a?(Method)
 
     func.call(tree, *args, **argv) do |tree, dir|
       unless tree.nil?
@@ -164,7 +190,7 @@ class Algo::DataStructure::BinarySearchTree
     end
   end
 
-  def _find_iterative_(tree, *args, find_which: nil, find_it: nil, find_down: nil, find_up: nil)
+  def _find_iter_(tree, *args, find_which: nil, find_it: nil, find_down: nil, find_up: nil)
     raise "#{self.class::Node} | #{tree.class} | #{tree}" unless tree.nil? || tree.instance_of?(self.class::Node)
     raise "#{find_which.class} | #{find_which.inspect}" unless find_which.is_a?(Proc)
     raise "#{find_it.class} | #{find_it.inspect}" unless find_it.is_a?(Proc)
@@ -183,7 +209,7 @@ class Algo::DataStructure::BinarySearchTree
     tree
   end
 
-  def _find_recursive_(tree, *args, find_which: nil, find_it: nil, find_nil: nil, find_down: nil, find_up: nil)
+  def _find_recur_(tree, *args, find_which: nil, find_it: nil, find_nil: nil, find_down: nil, find_up: nil)
     raise "#{self.class::Node} | #{tree.class} | #{tree}" unless tree.nil? || tree.instance_of?(self.class::Node)
     raise "#{find_which.class} | #{find_which.inspect}" unless find_which.is_a?(Proc)
     raise "#{find_it.class} | #{find_it.inspect}" unless find_it.is_a?(Proc)
@@ -198,9 +224,9 @@ class Algo::DataStructure::BinarySearchTree
       yield(tree, :down) if block_given?
       tree = find_down.call(tree) if find_down
       case find_which.call(tree, *args)
-      when -1 then tree.left = _find_recursive_(tree.left, *args, find_which: find_which, find_it: find_it,
+      when -1 then tree.left = _find_recur_(tree.left, *args, find_which: find_which, find_it: find_it,
                                                 find_nil: find_nil, find_down: find_down, find_up: find_up)
-      when 1 then tree.right = _find_recursive_(tree.right, *args, find_which: find_which, find_it: find_it,
+      when 1 then tree.right = _find_recur_(tree.right, *args, find_which: find_which, find_it: find_it,
                                                 find_nil: find_nil, find_down: find_down, find_up: find_up)
       when 0 then tree = find_it.call(tree, *args)
       else raise "#{find_which.call(tree, *args)} | #{tree} | #{args}"
@@ -210,6 +236,8 @@ class Algo::DataStructure::BinarySearchTree
     yield(tree, :up) if block_given? && tree
     tree
   end
+
+  private_decorator :_find_iter_, :_find_recur_
 end
 
 class Algo::DataStructure::SelfAdjustingBinarySearchTree

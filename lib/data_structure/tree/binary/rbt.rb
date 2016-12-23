@@ -29,38 +29,38 @@ class Algo::DataStructure::RedBlackTree
   public
 
   def insert(key, value)
-    @root = _call_(method(:_insert), @root, key, value, up: method(:_balance))
+    @root = _insert(@root, key, value, up: method(:_balance))
     @root.color = false if @root.color
   end
 
   def delete(key)
     if @root
       @root.color = true unless (@root.left && @root.left.color) || (@root.right && @root.right.color)
-      @root = _call_(method(:_delete), @root, key,
-                     down: ->(tree) do
-                       case key <=> tree.key
-                       when -1 then _make_left_red(tree)
-                       when 1 then _make_right_red(tree)
-                       else tree
-                       end
-                     end,
-                     up: method(:_balance))
+      @root = _delete(@root, key,
+                      down: ->(tree) do
+                        case key <=> tree.key
+                        when -1 then _make_left_red(tree)
+                        when 1 then _make_right_red(tree)
+                        else tree
+                        end
+                      end,
+                      up: method(:_balance))
       @root.color = false if @root && @root.color
     end
   end
 
-  def del_max
+  def delmax
     if @root
       @root.color = true unless (@root.left && @root.left.color) || (@root.right && @root.right.color)
-      @root = _call_(method(:_del_max), @root, down: method(:_make_right_red), up: method(:_balance))
+      @root = _delmax(@root, down: method(:_make_right_red), up: method(:_balance))
       @root.color = false if @root && @root.color
     end
   end
 
-  def del_min
+  def delmin
     if @root
       @root.color = true unless (@root.left && @root.left.color) || (@root.right && @root.right.color)
-      @root = _call_(method(:_del_min), @root, down: method(:_make_left_red), up: method(:_balance))
+      @root = _delmin(@root, down: method(:_make_left_red), up: method(:_balance))
       @root.color = false if @root && @root.color
     end
   end
@@ -68,52 +68,52 @@ class Algo::DataStructure::RedBlackTree
   protected
 
   def _delete(tree, key, down: nil, up: nil, &blk)
-    _find_(method(:_find_recursive_), tree, key,
-           find_which: ->(tree, key) { key <=> tree.key },
-           find_it:    ->(tree, _) do
-             if tree.left.nil?
-               tree.right.color = tree.color if tree.right
-               tree = tree.right
-             elsif tree.right.nil?
-               tree.left.color = tree.color if tree.left
-               tree = tree.left
-             else
-               tree = _make_right_red(tree)
-               if key != tree.key
-                 tree = _delete(tree, key, down: down, up: up, &blk)
-               else
-                 m = _min(tree.right)
-                 tree.key = m.key
-                 tree.value = m.value
-                 tree.right = _del_min(tree.right, down: down, up: up, &blk)
-               end
-             end
-             tree
-           end,
-           find_nil:   ->(_, _) { nil },
-           find_down: down, find_up: up, &blk)
+    _find_recur_(tree, key,
+                 find_which: ->(tree, key) { key <=> tree.key },
+                 find_it:    ->(tree, _) do
+                   if tree.left.nil?
+                     tree.right.color = tree.color if tree.right
+                     tree = tree.right
+                   elsif tree.right.nil?
+                     tree.left.color = tree.color if tree.left
+                     tree = tree.left
+                   else
+                     tree = _make_right_red(tree)
+                     if key != tree.key
+                       tree = _delete(tree, key, down: down, up: up, &blk)
+                     else
+                       m = _getmin(tree.right)
+                       tree.key = m.key
+                       tree.value = m.value
+                       tree.right = _delmin(tree.right, down: down, up: up, &blk)
+                     end
+                   end
+                   tree
+                 end,
+                 find_nil:   ->(_, _) { nil },
+                 find_down: down, find_up: up, &blk)
   end
 
-  def _del_max(tree, down: nil, up: nil, &blk)
-    _find_(method(:_find_recursive_), tree,
-           find_which: ->(tree) { tree.right.nil? ? 0 : 1 },
-           find_it:    ->(tree) do
-             tree.left.color = tree.color if tree.left
-             tree.left
-           end,
-           find_nil:   ->(tree) { raise "#{tree.class} | #{tree}" },
-           find_down: down, find_up: up, &blk)
+  def _delmax(tree, down: nil, up: nil, &blk)
+    _find_recur_(tree,
+                 find_which: ->(tree) { tree.right.nil? ? 0 : 1 },
+                 find_it:    ->(tree) do
+                   tree.left.color = tree.color if tree.left
+                   tree.left
+                 end,
+                 find_nil:   ->(tree) { raise "#{tree.class} | #{tree}" },
+                 find_down: down, find_up: up, &blk)
   end
 
-  def _del_min(tree, down: nil, up: nil, &blk)
-    _find_(method(:_find_recursive_), tree,
-           find_which: ->(tree) { tree.left.nil? ? 0 : -1 },
-           find_it:    ->(tree) do
-             tree.right.color = tree.color if tree.right
-             tree.right
-           end,
-           find_nil:   ->(tree) { raise "#{tree.class} | #{tree}" },
-           find_down: down, find_up: up, &blk)
+  def _delmin(tree, down: nil, up: nil, &blk)
+    _find_recur_(tree,
+                 find_which: ->(tree) { tree.left.nil? ? 0 : -1 },
+                 find_it:    ->(tree) do
+                   tree.right.color = tree.color if tree.right
+                   tree.right
+                 end,
+                 find_nil:   ->(tree) { raise "#{tree.class} | #{tree}" },
+                 find_down: down, find_up: up, &blk)
   end
 
   protected

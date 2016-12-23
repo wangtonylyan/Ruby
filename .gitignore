@@ -3,5 +3,6 @@
 
 temp*.*
 *.temp
+/temp
 *.log
 /.idea
