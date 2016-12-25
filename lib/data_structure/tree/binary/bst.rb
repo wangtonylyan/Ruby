@@ -9,30 +9,25 @@ module Algo
       class Node < Tree::Node
       end
 
-      def self.protected_decorator(*args)
-        args.each do |func|
-          raise "#{func.class} | #{func.inspect}" unless func.is_a?(Symbol) || func.is_a?(String)
-          old_name = func.to_sym
-          new_name = "_#{func}_".to_sym
-          alias_method  new_name, old_name
-          define_method old_name do |*args|
-            send(:_call_, method(old_name), *args)
-          end
-          private old_name
-          protected new_name
-        end
+      protected
+
+      # a wrapper for the internal _xxx methods
+      # This single entrance is reserved for the future modification by open class or inheritance.
+      def _call_(func, tree, *args, **argv, &blk)
+        raise "#{func.class} | #{func.inspect}" unless func.is_a?(Method)
+        func.call(tree, *args, **argv, &blk)
       end
 
-      def self.private_decorator(*args)
+      def self.find_caller(*args)
         args.each do |func|
           raise "#{func.class} | #{func.inspect}" unless func.is_a?(Symbol) || func.is_a?(String)
           old_name = func.to_sym
-          new_name = "_#{func}_".to_sym
+          new_name = "___#{func}___".to_sym
           alias_method  new_name, old_name
           define_method old_name do |*args|
-            send(:_find_, old_name, *args)
+            send(:_call_, method(new_name), *args)
           end
-          private old_name, new_name
+          protected old_name, new_name
         end
       end
     end
@@ -54,13 +49,8 @@ class Algo::DataStructure::BinarySearchTree::Node
 end
 
 class Algo::DataStructure::BinarySearchTree
-  def initialize(augment_down: nil, augment_up: nil)
-    raise "#{augment_down.class} | #{augment_down.inspect}" unless augment_down.nil? || augment_down.is_a?(Proc)
-    raise "#{augment_up.class} | #{augment_up.inspect}" unless augment_up.nil? || augment_up.is_a?(Proc)
-
-    super()
-    @augment_down = augment_down if augment_down
-    @augment_up = augment_up if augment_up
+  def initialize
+    super
   end
 
   public
@@ -164,40 +154,12 @@ class Algo::DataStructure::BinarySearchTree
                  find_down: down, find_up: up, &blk)
   end
 
-  protected_decorator :_search, :_getmax, :_getmin, :_insert, :_delete, :_delmax, :_delmin
+  find_caller :_search, :_getmax, :_getmin, :_insert, :_delete, :_delmax, :_delmin
 
   protected
 
-  # a wrapper for the internal _xxx methods
-  # This single entrance is reserved for the future modification by open class or inheritance.
-  def _call_(func, tree, *args, **argv, &blk)
-    raise "#{func.class} | #{func.inspect}" unless func.is_a?(Method)
-
-    func.call(tree, *args, **argv, &blk)
-  end
-
-  # a wrapper for the internal _find_xxx_ methods
-  # apply class-level functions as the block
-  def _find_(func, tree, *args, **argv)
-    raise "#{func.class} | #{func.inspect}" unless func.is_a?(Method)
-
-    func.call(tree, *args, **argv) do |tree, dir|
-      unless tree.nil?
-        send(@augment_down, tree) if @augment_down && dir == :down
-        send(@augment_up, tree) if @augment_up && dir == :up
-        yield(tree, dir) if block_given?
-      end
-    end
-  end
-
   def _find_iter_(tree, *args, find_which: nil, find_it: nil, find_down: nil, find_up: nil)
     raise "#{self.class::Node} | #{tree.class} | #{tree}" unless tree.nil? || tree.instance_of?(self.class::Node)
-    raise "#{find_which.class} | #{find_which.inspect}" unless find_which.is_a?(Proc)
-    raise "#{find_it.class} | #{find_it.inspect}" unless find_it.is_a?(Proc)
-    raise "#{find_down.class} | #{find_down.inspect}" unless find_down.nil? || find_down.is_a?(Proc) ||
-                                                             find_down.is_a?(Method)
-    raise "#{find_up.class} | #{find_up.inspect}" unless find_up.nil? || find_up.is_a?(Proc) || find_up.is_a?(Method)
-
     until tree.nil?
       yield(tree, :down) if block_given?
       tree = find_down.call(tree) if find_down
@@ -211,13 +173,6 @@ class Algo::DataStructure::BinarySearchTree
 
   def _find_recur_(tree, *args, find_which: nil, find_it: nil, find_nil: nil, find_down: nil, find_up: nil)
     raise "#{self.class::Node} | #{tree.class} | #{tree}" unless tree.nil? || tree.instance_of?(self.class::Node)
-    raise "#{find_which.class} | #{find_which.inspect}" unless find_which.is_a?(Proc)
-    raise "#{find_it.class} | #{find_it.inspect}" unless find_it.is_a?(Proc)
-    raise "#{find_nil.class} | #{find_nil.inspect}" unless find_nil.is_a?(Proc)
-    raise "#{find_down.class} | #{find_down.inspect}" unless find_down.nil? || find_down.is_a?(Proc) ||
-                                                             find_down.is_a?(Method)
-    raise "#{find_up.class} | #{find_up.inspect}" unless find_up.nil? || find_up.is_a?(Proc) || find_up.is_a?(Method)
-
     if tree.nil?
       tree = find_nil.call(tree, *args)
     else
@@ -225,9 +180,9 @@ class Algo::DataStructure::BinarySearchTree
       tree = find_down.call(tree) if find_down
       case find_which.call(tree, *args)
       when -1 then tree.left = _find_recur_(tree.left, *args, find_which: find_which, find_it: find_it,
-                                                find_nil: find_nil, find_down: find_down, find_up: find_up)
+                                            find_nil: find_nil, find_down: find_down, find_up: find_up)
       when 1 then tree.right = _find_recur_(tree.right, *args, find_which: find_which, find_it: find_it,
-                                                find_nil: find_nil, find_down: find_down, find_up: find_up)
+                                            find_nil: find_nil, find_down: find_down, find_up: find_up)
       when 0 then tree = find_it.call(tree, *args)
       else raise "#{find_which.call(tree, *args)} | #{tree} | #{args}"
       end
@@ -236,8 +191,6 @@ class Algo::DataStructure::BinarySearchTree
     yield(tree, :up) if block_given? && tree
     tree
   end
-
-  private_decorator :_find_iter_, :_find_recur_
 end
 
 class Algo::DataStructure::SelfAdjustingBinarySearchTree

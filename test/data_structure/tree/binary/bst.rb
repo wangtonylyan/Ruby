@@ -58,14 +58,15 @@ class Algo::DataStructure::BinarySearchTreeTest
         @cls.instance_methods.include?(check_method)
     @cls.instance_eval do
       raise "#{self.class} | #{inspect} | #{instance_methods}" unless instance_methods.include?(:_call_)
-      alias_method :__call_, :_call_
+      raise "#{self.class} | #{inspect} | #{instance_methods}" if instance_methods.include?(:__call__)
+      alias_method :__call__, :_call_
       define_method :_call_ do |func, tree, *args, **argv|
-        __call_(func, tree, *args, **argv) do |tree, dir|
-          raise if block_given?
+        raise if block_given?
+        __call__(func, tree, *args, **argv) do |tree, dir|
           send(check_method, tree) if dir == :up
         end
       end
-      private :__call_, :_call_
+      private :__call__, :_call_
     end
     raise "#{@cls.class} | #{@cls.inspect} | #{@cls.private_instance_methods}" unless
         @cls.private_instance_methods.include?(:_call_)
