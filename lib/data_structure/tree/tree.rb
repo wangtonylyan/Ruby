@@ -10,55 +10,59 @@ module Algo
   end
 end
 
-class Algo::DataStructure::Tree::Node
-  attr_accessor :key, :value
+module Algo::DataStructure
+  class Tree
+    class Node
+      attr_accessor :key, :value
 
-  def initialize(key, value)
-    super()
-    @key = key
-    @value = value
-  end
+      def initialize(key, value)
+        super()
+        @key = key
+        @value = value
+      end
 
-  def to_s
-    "key=#{@key}, value=#{@value}"
-  end
-end
+      def to_s
+        "key=#{@key}, value=#{@value}"
+      end
+    end
 
-class Algo::DataStructure::Tree
-  def initialize
-    super()
-    @root = nil
-  end
+    def initialize
+      super
+      @root = nil
+    end
 
-  def length
-    raise
-  end
+    public
 
-  def search
-    raise
-  end
+    def length
+      raise
+    end
 
-  def getmax
-    raise
-  end
+    def search
+      raise
+    end
 
-  def getmin
-    raise
-  end
+    def getmax
+      raise
+    end
 
-  def insert
-    raise
-  end
+    def getmin
+      raise
+    end
 
-  def delete
-    raise
-  end
+    def insert
+      raise
+    end
 
-  def delmax
-    raise
-  end
+    def delete
+      raise
+    end
 
-  def delmin
-    raise
+    def delmax
+      raise
+    end
+
+    def delmin
+      raise
+    end
   end
 end
